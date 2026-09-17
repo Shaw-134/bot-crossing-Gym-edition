@@ -281,6 +281,21 @@ const actions = {
     colony.ship.ping()
   },
 
+  archiveProject: () => {
+    const name = selectedProject
+    if (!name) return
+    const ids = threads.filter((t) => t.project === name).map((t) => t.id)
+    if (!ids.length) return
+    state.archived = [...new Set([...state.archived, ...ids])]
+    state.archivedAt = { ...state.archivedAt, ...Object.fromEntries(ids.map((id) => [id, Date.now()])) }
+    queueSave()
+    if (selectedId && ids.includes(selectedId)) select(null, {})
+    selectedProject = null
+    applyThreads(threads)
+    hud.toast(`Archived ${ids.length} thread${ids.length === 1 ? '' : 's'} from ${name}`)
+    colony.ship.ping()
+  },
+
   uiVisibility: (visible) => colony.setUiVisible(visible),
 
   // The card's bar is about the *thread*, not about how much of its building has risen —

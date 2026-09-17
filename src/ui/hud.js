@@ -446,6 +446,7 @@ export class Hud {
     on('#btn-reveal', 'click', () => this.actions.revealProject?.())
     on('#btn-copy-path', 'click', () => this.actions.copyProjectPath?.())
     on('#btn-hide-project', 'click', () => this.actions.hideProject?.())
+    on('#btn-archive-project', 'click', () => this.actions.archiveProject?.())
     on('#btn-hidden-toggle', 'click', () => this.toggleHiddenList())
     on('#btn-locate', 'click', () => this.actions.focusProject?.(this.project?.name))
     on('#btn-close-project', 'click', () => this.actions.closeProject?.())
@@ -1088,6 +1089,7 @@ const TEMPLATE = `
           <button class="btn" id="btn-copy-path" title="Copy the folder path">${ICON.copy} Copy path</button>
         </div>
         <button class="btn" id="btn-hide-project" title="Hide this repo from the colony — does not archive its threads">${ICON.eyeOff} Hide from colony</button>
+        <button class="btn" id="btn-archive-project" title="Archive every thread in this repo at once">${ICON.archive} Archive all threads</button>
       </div>
       <div class="threads-head"></div>
       <div class="threads"></div>

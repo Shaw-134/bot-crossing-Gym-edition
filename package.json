@@ -47,5 +47,8 @@
     "@gltf-transform/core": "^4.4.2",
     "@gltf-transform/functions": "^4.4.2",
     "vite": "^7.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
