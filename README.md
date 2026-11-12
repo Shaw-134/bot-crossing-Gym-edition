@@ -1,65 +1,102 @@
-# Bot Crossing — your agent threads, as a colony
+# Gym Edition — a fork of Bot Crossing
 
-**[botcrossing.com](https://botcrossing.com)**
+An unofficial, personal fork of **[Bot Crossing](https://github.com/Station-Sciences/bot-crossing)**
+([botcrossing.com](https://botcrossing.com)) by **[Jarren Rocks](https://jarren.rocks)**. Not
+endorsed by or affiliated with the original project.
 
-Every coding-agent thread on this machine is a little astronaut. They walk out of the ship, claim
-a plot for their repo, and build something. When one needs you it stops and holds a `?` over
-its head; click it and the thread opens back in whichever harness it came from.
+<!-- SCREENSHOT PLACEHOLDER: add a screenshot of this fork here, e.g. docs/screenshot.png -->
+> _Screenshot to be added._
 
-It reads the harness's own files, on your own machine. Nothing is uploaded, there is no
-account, and **it never writes to a harness at all** — `data/colony.json`, where the map lives,
-is the only file it writes anywhere.
+## What this is
+
+**Today** it is Bot Crossing with one small addition: a 3D colony where every coding-agent
+thread on this machine is a little astronaut. They walk out of the ship, claim a plot for their
+repo, and build something. When one needs you it stops and holds a `?` over its head; click it
+and the thread opens back in whichever harness it came from. It reads the harness's own files,
+on your own machine. Nothing is uploaded, there is no account, and it never writes to a harness.
+`data/colony.json`, where the map lives, is the only file it writes.
+
+**The goal** of this fork is one local-first, all-in-one dashboard for a PC and home setup: the
+agent sessions that exist today, plus email, Google Drive and PC/system monitoring, so that
+whatever needs attention shows up in one place. Later, optional integrations with other
+self-hosted services. No hosted backend; data is read on your own machine.
+
+That goal is **not built yet**. See [Status](#status).
+
+## Changes from upstream
+
+Compared with upstream at the point this fork branched (`fefaf7b`, 16 September 2026):
+
+- **Archive all threads for a repo.** An "Archive all threads" button in the project card
+  (`src/ui/hud.js`) and an `archiveProject` action (`src/main.js`) archive every thread of the
+  selected repo in one click and show a toast with the count.
+- **Optional `.env` file.** `server/lib/env.mjs` loads a gitignored `.env` from the repository
+  root before the server reads its settings. `.env.example` documents the variables.
+- **Stricter `.gitignore`** for `.env` files, credential and token files, keys, and all of `data/`.
+- `package.json`: an `allowScripts` entry for `esbuild@0.28.2`.
+- This README section.
+
+Everything else is upstream's code. This fork has not merged the 74 commits upstream `main` has
+made since the branch point.
+
+## Status
+
+| Area | Status |
+| --- | --- |
+| Agent sessions: Claude Code, Codex, Cursor | **Working** (upstream's harness adapters, unchanged) |
+| Archive all threads for a repo | **Working** (this fork) |
+| Email | **Planned**, not started |
+| Google Drive | **Planned**, not started |
+| PC / system monitoring | **Planned**, not started |
+| Jellyfin | **Planned**, not started |
+| Jarvis (a local AI agent system) | **Planned**, not started |
+
+No integration is partially built. There is no code for any "Planned" row.
+
+## Roadmap
+
+In rough order. All of it is planned; none of it exists.
+
+1. Merge upstream's newer commits.
+2. PC / system monitoring.
+3. Email and Google Drive: surface what needs attention.
+4. Optional, configurable integrations: Jellyfin, Jarvis, extra monitoring sources. Each off by
+   default and set up through local configuration only.
+
+## Configuration
+
+Everything is optional and the defaults work. To change a setting, copy
+[`.env.example`](.env.example) to `.env` and edit it, or set the variable in your shell (the
+shell wins). `.env` is gitignored; `.env.example` holds placeholders only.
+
+Read by the code today: `PORT`, `BOT_CROSSING_HOST`, `BOT_CROSSING_DATA`, `CODEX_HOME`,
+`BOT_CROSSING_CURSOR_PROJECTS`. The integration variables listed in `.env.example` are marked
+planned and nothing reads them yet. When integrations are built, their credentials go in `.env`
+or another gitignored file, never in the repository.
+
+## Credit and licence
+
+- The original project, **Bot Crossing**, is by **[Jarren Rocks](https://jarren.rocks)**:
+  the colony, the worlds, the crew, the harness adapters and the sound. Upstream:
+  [Station-Sciences/bot-crossing](https://github.com/Station-Sciences/bot-crossing).
+- The code is under the [MIT Licence](LICENSE), © 2026 Jarren Rocks. That notice is kept
+  unchanged, as the licence requires. This fork's changes are MIT too.
+- The bundled art is CC0 by Kay Lousberg and Kenney; see
+  [`public/assets/CREDITS.md`](public/assets/CREDITS.md) and [Licence](#licence) below.
+- The name "Bot Crossing" and newer crew character designs are reserved by the original author;
+  see [TRADEMARKS.md](TRADEMARKS.md). This fork refers to the name only descriptively, as a
+  fork of Bot Crossing, and does not use the crew character as its own logo or mascot.
+
+---
+
+# Upstream documentation
+
+Everything below is the original Bot Crossing README, written by Jarren Rocks in the first
+person and kept as it was. "I" below means Jarren, and the status note is his.
 
 > **Status:** published as-is. I built this for myself and cannot promise to maintain it —
 > issues and PRs are welcome but may go unanswered, and forking is an entirely reasonable
 > thing to do. [CONTRIBUTING.md](CONTRIBUTING.md) sets out what to expect.
-
-## Gym edition
-
-This repository is **Bot Crossing — Gym edition**, a personal fork of
-[Bot Crossing](https://github.com/Station-Sciences/bot-crossing) by
-**[Jarren Rocks](https://jarren.rocks)**. It is the original colony sim, unchanged in how it works:
-every coding-agent thread on your machine is an astronaut, read from the harness's own local
-files.
-
-At this point the fork is the upstream project plus one small UI change (below). No gym-specific
-feature has been built yet. The name marks the direction of the fork, not a finished product.
-
-Per [TRADEMARKS.md](TRADEMARKS.md), the name "Bot Crossing" is reserved by the original author,
-and this fork is not endorsed by or maintained by upstream. The fork is described as "a fork of
-Bot Crossing", which that file permits.
-
-### Changes from upstream
-
-Compared with upstream at the point this fork branched (`fefaf7b`), the fork has **one commit**
-(`c5df01c`), touching three files:
-
-- **Archive all threads for a repo.** A new "Archive all threads" button in the project card
-  (`src/ui/hud.js`) calls a new `archiveProject` action (`src/main.js`), which archives every
-  thread of the selected repo in one click and shows a toast with the count. Previously threads
-  were archived one by one.
-- `package.json`: an `allowScripts` entry for `esbuild@0.28.2`.
-
-Everything else is upstream's code. The fork is 74 commits behind upstream `main` and has not
-merged them. `npm test` (72 tests) and `vite build` pass on this branch.
-
-### Credit
-
-All of the original work — the colony, the worlds, the crew, the harness adapters, the sound —
-is by **Jarren Rocks** and is licensed under the [MIT Licence](LICENSE), © 2026 Jarren Rocks.
-That notice is kept, as the licence requires. The bundled art is CC0 by Kay Lousberg and
-Kenney, credited under [Licence](#licence) below. The Linux and Windows support commits from Kiran J
-and RouterBox are in the history.
-
-### Roadmap
-
-Plans only. **None of these exist in the code today.**
-
-- Gym-specific features: not designed or started.
-- Email integration: not started.
-- Google Drive integration: not started.
-- PC / system monitoring (CPU, memory and the like): not started.
-- Merge upstream's 74 newer commits.
 
 ## Run it
 
