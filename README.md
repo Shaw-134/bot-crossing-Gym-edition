@@ -1,14 +1,134 @@
-# Bot Crossing — your agent threads, as a colony
+# Homebase Colony — a fork of Bot Crossing by Jarren Rocks
 
-**[botcrossing.com](https://botcrossing.com)**
+An unofficial, personal fork of **[Bot Crossing](https://github.com/Station-Sciences/bot-crossing)**
+([botcrossing.com](https://botcrossing.com)) by **[Jarren Rocks](https://jarren.rocks)**. Not
+endorsed by or affiliated with the original project.
 
-Every coding-agent thread on this machine is a little astronaut. They walk out of the ship, claim
-a plot for their repo, and build something. When one needs you it stops and holds a `?` over
-its head; click it and the thread opens back in whichever harness it came from.
+<!-- SCREENSHOT PLACEHOLDER: add a screenshot of this fork here, e.g. docs/screenshot.png -->
+> _Screenshot to be added._
 
-It reads the harness's own files, on your own machine. Nothing is uploaded, there is no
-account, and **it never writes to a harness at all** — `data/colony.json`, where the map lives,
-is the only file it writes anywhere.
+## What this is
+
+A 3D colony where every coding-agent thread on this machine is a little astronaut. They walk
+out of the ship, claim a plot for their repo, and build something. When one needs you it stops
+and holds a `?` over its head; click it and the thread opens back in whichever harness it came
+from. That part is Bot Crossing, unchanged.
+
+This fork adds a **dashboard panel** beside the repos, fed by optional **connectors**: this
+machine's load, mail, Google Drive, a Jellyfin server, and any local service that answers over
+HTTP. Anything that needs attention carries the same `?`. The aim is one local-first place to
+see what needs you across a PC and home setup.
+
+There is no hosted backend, no account with this project, and no telemetry. With no
+connectors enabled (the default) it makes no network requests beyond its own page.
+
+## Changes from upstream
+
+Compared with upstream at the point this fork branched (`fefaf7b`, 16 September 2026):
+
+- **Renamed** to Homebase Colony in `package.json`, the page title and the UI, because
+  [TRADEMARKS.md](TRADEMARKS.md) reserves the original name.
+- **Archive all threads for a repo**: a button in the project card (`src/ui/hud.js`,
+  `src/main.js`).
+- **Connector architecture** (`server/connectors/`): a registry that loads only the connectors
+  listed in `HOMEBASE_CONNECTORS`, a `GET /api/connectors` route, and a dashboard block in the
+  sidebar that is hidden when no connector is on.
+- **Connectors**: `system`, `email`, `drive`, `jellyfin`, `http`. See [Status](#status).
+- **Optional `.env` file** (`server/lib/env.mjs`), `.env.example`, and a stricter `.gitignore`.
+- One new dependency, [`systeminformation`](https://www.npmjs.com/package/systeminformation),
+  imported only when the `system` connector is on.
+- Tests for all of the above in `test/connector*.test.mjs`.
+
+Everything else is upstream's code. This fork has not merged the 74 commits upstream `main` has
+made since the branch point.
+
+## Status
+
+"Working" means it has been run against the real thing. "Partial" means the code and its
+tests against canned responses exist, but it has not yet been run against a real account or
+server, so expect rough edges.
+
+| Area | Status |
+| --- | --- |
+| Agent sessions: Claude Code, Codex, Cursor | **Working** (upstream's harness adapters, unchanged) |
+| Archive all threads for a repo | **Working** |
+| Dashboard panel and connector registry | **Working** |
+| `system`: CPU, memory, disks, GPU, top processes | **Working** on Linux. GPU rows appear only where the driver reports load; not yet tried on Windows or macOS |
+| `http`: generic status checks for local services | **Working** |
+| `email`: Gmail unread count, important and starred | **Partial**: not yet run against a real Google account |
+| `drive`: recently shared or changed files | **Partial**: not yet run against a real Google account |
+| `jellyfin`: health, active streams, recent additions | **Partial**: not yet run against a real server |
+| Mail over IMAP | **Planned**, not started |
+| A local agent system (e.g. "Jarvis") | No dedicated code, by design: point an `http` check at it |
+
+## Roadmap
+
+1. Verify `email`, `drive` and `jellyfin` against real accounts and servers.
+2. Mail over IMAP, for providers other than Gmail.
+3. More monitoring sources through the `http` connector or new connectors.
+4. Merge upstream's newer commits.
+
+## Configuration
+
+Everything is optional and the defaults work. Copy [`.env.example`](.env.example) to `.env` and
+edit it, or set variables in your shell (the shell wins). `.env` is gitignored; `.env.example`
+holds placeholders only.
+
+Connectors are off until listed:
+
+```bash
+HOMEBASE_CONNECTORS=system,http
+```
+
+| Connector | Needs |
+| --- | --- |
+| `system` | Nothing. Optional `SYSTEM_*_WARN` thresholds. |
+| `http` | A checks file at `data/http-checks.json`; start from [`http-checks.example.json`](http-checks.example.json). |
+| `email`, `drive` | Your own Google OAuth client (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`), then `npm run google-auth` once. |
+| `jellyfin` | `JELLYFIN_URL` and `JELLYFIN_API_KEY`. |
+
+A connector that is listed but not set up, or that fails, says so in the panel and does not
+affect the others or the colony. Writing a new one is a module in `server/connectors/` and one
+line in its `index.mjs`; the interface is documented at the top of that file.
+
+## Security and privacy
+
+- **Local only.** The server binds to `127.0.0.1` by default and answers only its own page
+  (see [Keeping it local](#keeping-it-local)). There is no hosted backend and no telemetry.
+- **Read-only.** Connectors only read: every data request is a GET, and the one POST is the
+  token exchange with Google's sign-in endpoint. Google access uses the narrowest scopes
+  that work: `gmail.metadata` (labels and headers; it cannot read a message body) and
+  `drive.metadata.readonly` (names and dates; it cannot read a file's contents).
+- **Where requests go.** With connectors off, nowhere. `email` and `drive` talk to Google's
+  APIs directly from your machine; `jellyfin` and `http` talk to the addresses you configure.
+- **What is stored.** Connector data is held in memory for the panel and never written to
+  disk. The only connector file written is the Google refresh token, in `data/`, readable by
+  your user only.
+- **Secrets stay out of git.** Keys, tokens, addresses and the checks file live in `.env` or
+  `data/`, both gitignored. Error messages shown in the panel name a host, never a full URL,
+  query string or header.
+- The page links connector items to the addresses you configured, so serving the colony to
+  your network (`BOT_CROSSING_HOST`) shows those item titles to anyone who can open it.
+
+## Credit and licence
+
+- The original project, **Bot Crossing**, is by **[Jarren Rocks](https://jarren.rocks)**:
+  the colony, the worlds, the crew, the harness adapters and the sound. Upstream:
+  [Station-Sciences/bot-crossing](https://github.com/Station-Sciences/bot-crossing).
+- The code is under the [MIT Licence](LICENSE), © 2026 Jarren Rocks. That notice is kept
+  unchanged, as the licence requires. This fork's changes are MIT too.
+- The bundled art is CC0 by Kay Lousberg and Kenney; see
+  [`public/assets/CREDITS.md`](public/assets/CREDITS.md) and [Licence](#licence) below.
+- The name "Bot Crossing" and newer crew character designs are reserved by the original author;
+  see [TRADEMARKS.md](TRADEMARKS.md). This fork refers to the name only descriptively, as a
+  fork of Bot Crossing, and does not use the crew character as its own logo or mascot.
+
+---
+
+# Upstream documentation
+
+Everything below is the original Bot Crossing README, written by Jarren Rocks in the first
+person and kept as it was. "I" below means Jarren, and the status note is his.
 
 > **Status:** published as-is. I built this for myself and cannot promise to maintain it —
 > issues and PRs are welcome but may go unanswered, and forking is an entirely reasonable

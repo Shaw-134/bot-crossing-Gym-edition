@@ -1,0 +1,20 @@
+{
+  "checks": [
+    {
+      "name": "Example service",
+      "url": "http://service.example.com:8000/health",
+      "link": "http://service.example.com:8000/"
+    },
+    {
+      "name": "Example JSON health",
+      "url": "http://monitor.example.com:9000/api/health",
+      "json": { "statusPath": "status", "okValues": ["ok", "healthy"] }
+    },
+    {
+      "name": "Example agent system",
+      "url": "http://agents.example.com:8080/attention",
+      "mode": "items",
+      "tokenEnv": "EXAMPLE_AGENT_TOKEN"
+    }
+  ]
+}

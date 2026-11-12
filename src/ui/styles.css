@@ -1569,3 +1569,118 @@ kbd {
   }
 }
 .bot-crossing-canvas { cursor: grab; }
+
+/* ── connectors: the dashboard block above the repos ────────────────────────────── */
+
+.side .connectors-block {
+  flex: none;
+  max-height: 45%;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--line);
+}
+
+.side .conn-head {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.side .connector-items {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  scrollbar-width: thin;
+  pointer-events: auto;
+}
+
+.side .conn-source {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 10px 3px;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.side .conn-source .n {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex: none;
+}
+
+.side .conn-source .why {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.side .conn-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  color: var(--text);
+  font-size: 12.5px;
+  text-decoration: none;
+}
+
+.side a.conn-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.side .conn-item .n {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side .conn-item .st {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  color: var(--dim);
+}
+
+.side .conn-item .pip {
+  width: 6px;
+  height: 6px;
+  margin: 0 5px;
+  border-radius: 50%;
+  background: var(--dim);
+  opacity: 0.5;
+  flex: none;
+}
+
+/* The astronaut's `?`: same colours as the badge in the help sheet's legend. */
+.side .conn-item .q {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  background: #1a2b46;
+  color: #8fb4ee;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-style: normal;
+  flex: none;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.side .conn-item.attention .st {
+  color: #8fb4ee;
+}

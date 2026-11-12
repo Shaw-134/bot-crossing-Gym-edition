@@ -1,8 +1,10 @@
+import './lib/env.mjs'
 import fsp from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { connectorHub } from './connectors/index.mjs'
 import { openInTerminal, schemeHasHandler, schemeOf } from './lib/xdg.mjs'
 import {
   defaultHarness,
@@ -359,7 +361,7 @@ export async function apiMiddleware(req, res, next) {
   if (!url.pathname.startsWith('/api/')) return next ? next() : send(res, 404, { error: 'Not found' })
 
   if (!isLocalRequest(req)) {
-    return send(res, 403, { error: 'Bot Crossing only answers its own page on this machine' })
+    return send(res, 403, { error: 'Homebase Colony only answers its own page on this machine' })
   }
 
   try {
@@ -369,6 +371,12 @@ export async function apiMiddleware(req, res, next) {
       // appearing healthy in the list while quietly contributing nothing.
       const warnings = (await harnessStatus()).filter((h) => h.detected && h.error).map((h) => h.error)
       return send(res, 200, { threads, scannedAt: Date.now(), warnings })
+    }
+
+    // Optional connectors (system load, mail, media server…). Empty unless some are listed
+    // in HOMEBASE_CONNECTORS; read-only, and nothing they return is written to disk.
+    if (url.pathname === '/api/connectors' && req.method === 'GET') {
+      return send(res, 200, await connectorHub().poll())
     }
 
     if (url.pathname === '/api/harnesses' && req.method === 'GET') {

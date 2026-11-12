@@ -3,8 +3,21 @@ dist
 
 # Your colony: which repo sits on which plot, and what you archived. Holds the names and
 # paths of the repos you work in, so it stays out of the repository.
-data/*.json
-data/*.tmp
+data/
+
+# Local configuration and credentials. `.env.example` is the committed template; real values
+# for any integration (mail, Drive, Jellyfin, a local agent system, monitoring) stay here.
+.env
+.env.*
+!.env.example
+*.local.json
+config.local.*
+credentials*.json
+client_secret*.json
+token*.json
+*.pem
+*.key
+*.p12
 
 # Per-machine Claude Code permissions — personal paths live in here.
 .claude/settings.local.json

@@ -15,6 +15,7 @@ import { shorelinePoints } from './world/planet.js'
 import { shipPosition } from './world/plots.js'
 import {
   fetchThreads,
+  fetchConnectors,
   fetchState,
   saveState,
   openThread,
@@ -38,7 +39,7 @@ const app = document.getElementById('app')
 app.insertAdjacentHTML(
   'beforeend',
   `<div class="boot"><div class="inner">
-     <h1>Bot Crossing</h1>
+     <h1>Homebase Colony</h1>
      <p>Scanning for agent threads…</p>
      <div class="bar"><i></i></div>
    </div></div>`
@@ -92,7 +93,7 @@ const actions = {
     const url = engine.canvas.toDataURL('image/png')
     const a = document.createElement('a')
     a.href = url
-    a.download = `bot-crossing-${colony.planet.id}-${stamp()}.png`
+    a.download = `homebase-colony-${colony.planet.id}-${stamp()}.png`
     a.click()
     hud.toast('Screenshot saved')
   },
@@ -748,6 +749,22 @@ async function poll() {
     hud.removeBoot()
   } finally {
     polling = false
+  }
+  pollConnectors()
+}
+
+// Connectors are optional and separate from the roster: a slow or broken one must never
+// hold up, or put an error toast over, the threads themselves.
+let pollingConnectors = false
+async function pollConnectors() {
+  if (pollingConnectors) return
+  pollingConnectors = true
+  try {
+    hud.setConnectors(await fetchConnectors())
+  } catch {
+    /* the panel keeps what it last showed */
+  } finally {
+    pollingConnectors = false
   }
 }
 

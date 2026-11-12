@@ -486,6 +486,57 @@ export class Hud {
   }
 
   /**
+   * Items from the optional connectors, above the repos. The block stays hidden until at
+   * least one connector is switched on, so a colony with none looks exactly as it did.
+   * An item that needs attention wears the same blue `?` an astronaut holds up.
+   */
+  setConnectors(data) {
+    const connectors = data?.connectors || []
+    const items = data?.items || []
+    const signature = JSON.stringify([connectors, items.map((i) => [i.source, i.title, i.status, i.needsAttention, i.url])])
+    if (this._last.connectors === signature) return
+    this._last.connectors = signature
+
+    const block = this.$('.connectors-block')
+    block.hidden = connectors.length === 0
+    const wrap = this.$('.connector-items')
+    wrap.innerHTML = ''
+    if (!connectors.length) return
+
+    const urgent = items.filter((i) => i.needsAttention).length
+    this.$('.conn-head span').textContent = urgent ? `Dashboard — ${urgent} need you` : 'Dashboard'
+    this.$('.conn-head .alarm').hidden = urgent === 0
+
+    for (const c of connectors) {
+      const head = document.createElement('div')
+      head.className = `conn-source ${c.state === 'ok' ? '' : 'bad'}`
+      head.innerHTML =
+        `<span class="n">${escapeHtml(c.label)}</span>` +
+        (c.state === 'ok' ? '' : `<span class="why">${escapeHtml(c.error || c.state)}</span>`)
+      wrap.appendChild(head)
+
+      // Attention first, then as the connector ordered them.
+      const mine = items.filter((i) => i.source === c.id)
+      mine.sort((a, b) => Number(b.needsAttention) - Number(a.needsAttention))
+      for (const item of mine) {
+        const row = document.createElement(item.url ? 'a' : 'div')
+        row.className = `conn-item ${item.needsAttention ? 'attention' : ''}`
+        if (item.url) {
+          row.href = item.url
+          row.target = '_blank'
+          row.rel = 'noopener noreferrer'
+        }
+        row.title = `${item.title} — ${item.status} (${ago(item.updatedAt)})`
+        row.innerHTML =
+          (item.needsAttention ? '<i class="q" aria-label="needs attention">?</i>' : '<i class="pip"></i>') +
+          `<span class="n">${escapeHtml(item.title)}</span>` +
+          `<span class="st">${escapeHtml(item.status)}</span>`
+        wrap.appendChild(row)
+      }
+    }
+  }
+
+  /**
    * Every repo, in the sidebar. This was a strip of chips along the bottom of the screen;
    * it is a list now because the sidebar is where all the chrome lives, and because a list
    * can carry a count and an alarm without running out of room at eleven repos.
@@ -515,7 +566,7 @@ export class Hud {
       b.addEventListener('click', () => this.actions.pickProject?.(p.name))
       wrap.appendChild(b)
     }
-    this.$('.sec-head span').textContent = `${projects.length} repo${projects.length === 1 ? '' : 's'}`
+    this.$('.repos-head span').textContent = `${projects.length} repo${projects.length === 1 ? '' : 's'}`
 
     // The hidden list is its own block at the foot of the sidebar: collapsed by default, because
     // the whole point of hiding a repo is not to look at it.
@@ -1051,7 +1102,7 @@ const TEMPLATE = `
 <aside class="side panel">
   <div class="grab"></div>
   <header class="brandbar">
-    <div class="brand"><i class="dot"></i>Bot Crossing</div>
+    <div class="brand"><i class="dot"></i>Homebase Colony</div>
     <button class="btn icon ghost" id="btn-shot" title="Screenshot (P)">${ICON.camera}</button>
     <button class="btn icon ghost" id="btn-help" title="Help (?)">${ICON.help}</button>
     <button class="btn icon ghost" id="btn-hide" title="Hide all UI (H)">${ICON.eye}</button>
@@ -1062,7 +1113,11 @@ const TEMPLATE = `
 
   <div class="side-body">
     <div class="projects-pane">
-      <div class="sec-head"><span>Repos</span></div>
+      <div class="connectors-block" hidden>
+        <div class="sec-head conn-head"><span>Dashboard</span><i class="alarm" hidden></i></div>
+        <div class="connector-items"></div>
+      </div>
+      <div class="sec-head repos-head"><span>Repos</span></div>
       <div class="projects"></div>
       <div class="hidden-block" hidden>
         <button type="button" class="hidden-toggle" id="btn-hidden-toggle" aria-expanded="false">
@@ -1138,7 +1193,7 @@ const TEMPLATE = `
 
 <div class="help">
   <div class="sheet panel">
-    <h2>Bot Crossing</h2>
+    <h2>Homebase Colony</h2>
     <p class="sub">Every coding-agent thread on this machine is an astronaut. They walk out of the ship, claim a plot for their repo, and build. Click one to open its thread; click a zone — its deck or its name — for the repo itself, and start a new conversation there. Hide a repo from that panel if you would rather not see it — its threads stay in your harness, and you can show it again from the list. Navigation works like Google Earth — drag the ground itself, right-drag to tilt, scroll to zoom in on whatever is under the cursor.</p>
     <div class="cols">
       <div>
