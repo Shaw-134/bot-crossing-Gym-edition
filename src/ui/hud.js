@@ -35,6 +35,7 @@ const ICON = {
   globe: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>`,
   camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 8.5h3.2l1.5-2h8.6l1.5 2H21v11H3z"/><circle cx="12" cy="14" r="3.4"/></svg>`,
   help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.6v.4"/><path d="M12 17h.01"/></svg>`,
+  globeGrid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M7 6.5h.01M10 6.5h.01"/></svg>`,
   open: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-8.5 8.5"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>`,
   archive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3H3z"/><path d="M5 9v10h14V9"/><path d="M10 13h4"/></svg>`,
   close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
@@ -446,6 +447,10 @@ export class Hud {
     on('#btn-reveal', 'click', () => this.actions.revealProject?.())
     on('#btn-copy-path', 'click', () => this.actions.copyProjectPath?.())
     on('#btn-hide-project', 'click', () => this.actions.hideProject?.())
+    on('#btn-browser', 'click', () => this.toggleBrowser())
+    on('#btn-close-browser', 'click', () => this.toggleBrowser(false))
+    on('#btn-browser-keep', 'click', () => this.setBrowserMode('persistent'))
+    on('#btn-browser-throwaway', 'click', () => this.setBrowserMode('throwaway'))
     on('#btn-archive-project', 'click', () => this.actions.archiveProject?.())
     on('#btn-hidden-toggle', 'click', () => this.toggleHiddenList())
     on('#btn-locate', 'click', () => this.actions.focusProject?.(this.project?.name))
@@ -532,6 +537,20 @@ export class Hud {
           `<span class="n">${escapeHtml(item.title)}</span>` +
           `<span class="st">${escapeHtml(item.status)}</span>`
         wrap.appendChild(row)
+        // With a remote browser configured, a link can be carried into it by hand.
+        if (item.url && this.browser) {
+          const copy = document.createElement('button')
+          copy.type = 'button'
+          copy.className = 'btn icon ghost conn-copy'
+          copy.title = 'Copy link, to paste into the remote browser'
+          copy.innerHTML = ICON.copy
+          copy.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            navigator.clipboard?.writeText(item.url).then(() => this.toast('Link copied'), () => this.toast('Could not copy the link', 'err'))
+          })
+          row.appendChild(copy)
+        }
       }
     }
   }
@@ -944,6 +963,65 @@ export class Hud {
     return open
   }
 
+  /**
+   * The optional remote browser. `cfg` is `{ enabled, persistent, throwaway }` from the
+   * server; with neither address set the button stays hidden and nothing else changes.
+   */
+  setBrowser(cfg) {
+    this.browser = cfg?.enabled ? cfg : null
+    this.$('#btn-browser').hidden = !this.browser
+    // Connector rows carry a copy-link button only when a browser exists: draw them again.
+    this._last.connectors = null
+    if (!this.browser) return
+    this.$('#btn-browser-keep').hidden = !this.browser.persistent
+    this.$('#btn-browser-throwaway').hidden = !this.browser.throwaway
+    this.browserMode = this.browser.persistent ? 'persistent' : 'throwaway'
+  }
+
+  get browserOpen() {
+    return !this.$('.browser').classList.contains('closed')
+  }
+
+  setBrowserMode(mode) {
+    if (!this.browser?.[mode]) return
+    this.browserMode = mode
+    if (this.browserOpen) this._mountBrowser()
+  }
+
+  /**
+   * The frame exists only while the panel is open: closing it removes the element, which
+   * ends the stream rather than leaving a hidden browser session running.
+   *
+   * The frame is another origin (the container's own address), so it cannot read or drive
+   * this page. `sandbox` narrows it further: no top-level navigation, no popups, no downloads.
+   */
+  _mountBrowser() {
+    const url = this.browser[this.browserMode]
+    const holder = this.$('.browser .frame')
+    holder.innerHTML = ''
+    const frame = document.createElement('iframe')
+    frame.title = 'Remote browser'
+    frame.referrerPolicy = 'no-referrer'
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock')
+    frame.setAttribute('allow', 'autoplay; fullscreen; clipboard-read; clipboard-write')
+    frame.src = url
+    holder.appendChild(frame)
+    this.$('#btn-browser-pop').href = url
+    this.$('#btn-browser-keep').setAttribute('aria-pressed', String(this.browserMode === 'persistent'))
+    this.$('#btn-browser-throwaway').setAttribute('aria-pressed', String(this.browserMode === 'throwaway'))
+  }
+
+  toggleBrowser(force) {
+    if (!this.browser) return
+    const panel = this.$('.browser')
+    const open = force ?? !this.browserOpen
+    panel.classList.toggle('closed', !open)
+    panel.inert = !open
+    this.$('#btn-browser').setAttribute('aria-pressed', String(open))
+    if (open) this._mountBrowser()
+    else this.$('.browser .frame').innerHTML = ''
+  }
+
   toggleSettings(force) {
     const panel = this.$('.settings')
     const open = force ?? panel.classList.contains('closed')
@@ -1160,7 +1238,22 @@ const TEMPLATE = `
   <button class="btn icon" id="btn-planet" title="Change planet (Tab)">${ICON.globe}</button>
   <button class="btn icon" id="btn-time" title="Change the time of day (L)">${ICON.sun}</button>
   <div class="sep"></div>
+  <button class="btn icon" id="btn-browser" title="Remote browser (B)" aria-pressed="false" hidden>${ICON.globeGrid}</button>
   <button class="btn icon" id="btn-sound" title="Mute (M)" aria-pressed="true">${ICON.sound}</button>
+</div>
+
+<div class="browser panel closed" inert>
+  <header>
+    <span class="name">Remote browser</span>
+    <div class="modes" role="group" aria-label="Which browser">
+      <button class="btn" id="btn-browser-keep" title="Keeps its profile: for sites you sign in to" aria-pressed="false">Kept profile</button>
+      <button class="btn" id="btn-browser-throwaway" title="No stored profile: for links you do not trust" aria-pressed="false">Throwaway</button>
+    </div>
+    <a class="btn icon ghost" id="btn-browser-pop" title="Open in its own tab" target="_blank" rel="noopener noreferrer">${ICON.open}</a>
+    <button class="btn icon ghost" id="btn-close-browser" title="Close (Esc)">${ICON.close}</button>
+  </header>
+  <div class="frame"></div>
+  <footer>Runs in your own container, not on this machine. To open a dashboard item here, copy its link and paste it into the address bar.</footer>
 </div>
 
 <div class="settings panel closed" inert>

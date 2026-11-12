@@ -16,6 +16,7 @@ import { shipPosition } from './world/plots.js'
 import {
   fetchThreads,
   fetchConnectors,
+  fetchBrowser,
   fetchState,
   saveState,
   openThread,
@@ -640,8 +641,13 @@ window.addEventListener('keydown', (e) => {
       rig.desiredDistance = Math.min(150, rig.desiredDistance * 1.22)
       break
     // One step at a time, outward: the thread, then the zone it belongs to.
+    case 'b':
+    case 'B':
+      hud.toggleBrowser()
+      break
     case 'Escape':
       if (document.querySelector('.help.open')) hud.toggleHelp(false)
+      else if (hud.browserOpen) hud.toggleBrowser(false)
       else if (selectedId) select(null, {})
       else if (selectedProject) actions.closeProject()
       break
@@ -810,6 +816,9 @@ async function boot() {
   }
   colony.astronauts.setRig(crewRig())
   if (!kitError) colony.onAssetsReady()
+
+  // Optional, and nothing waits on it: the button simply stays hidden if this fails.
+  fetchBrowser().then((cfg) => hud.setBrowser(cfg)).catch(() => {})
 
   await poll()
   setInterval(poll, POLL_MS)

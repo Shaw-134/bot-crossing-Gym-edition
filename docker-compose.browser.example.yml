@@ -1,0 +1,49 @@
+# Example: two self-hosted remote browsers for Homebase Colony, using Neko
+# (https://github.com/m1k1o/neko, Apache-2.0). Based on Neko's own docker-compose.yaml.
+#
+#   cp docker-compose.browser.example.yml docker-compose.browser.yml   # gitignored
+#   docker compose --env-file .env -f docker-compose.browser.yml up -d
+#
+# Then in .env:
+#   BROWSER_URL=http://127.0.0.1:8081
+#   BROWSER_THROWAWAY_URL=http://127.0.0.1:8082
+#
+# Both are published on 127.0.0.1 only, so nothing else on your network can reach them.
+# Passwords come from .env and are required: there are no defaults.
+#
+# To wipe the throwaway browser (history, cookies, downloads):
+#   docker compose --env-file .env -f docker-compose.browser.yml up -d --force-recreate browser-throwaway
+
+services:
+  # Keeps its Firefox profile between restarts, for sites you sign in to.
+  browser:
+    image: "ghcr.io/m1k1o/neko/firefox:latest"
+    restart: "unless-stopped"
+    shm_size: "2gb"
+    ports:
+      - "127.0.0.1:8081:8080"
+      - "127.0.0.1:52000-52100:52000-52100/udp"
+    volumes:
+      # Lives under data/, which is gitignored. It will hold cookies and logins.
+      - "./data/browser-profile:/home/neko/.mozilla/firefox/profile.default"
+    environment:
+      NEKO_WEBRTC_EPR: 52000-52100
+      NEKO_WEBRTC_NAT1TO1: 127.0.0.1
+      NEKO_DESKTOP_SCREEN: 1280x720@30
+      NEKO_MEMBER_MULTIUSER_USER_PASSWORD: "${BROWSER_USER_PASSWORD:?set BROWSER_USER_PASSWORD in .env}"
+      NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD: "${BROWSER_ADMIN_PASSWORD:?set BROWSER_ADMIN_PASSWORD in .env}"
+
+  # No volume: the profile lives in the container and is gone when it is recreated.
+  browser-throwaway:
+    image: "ghcr.io/m1k1o/neko/firefox:latest"
+    restart: "unless-stopped"
+    shm_size: "2gb"
+    ports:
+      - "127.0.0.1:8082:8080"
+      - "127.0.0.1:52200-52300:52200-52300/udp"
+    environment:
+      NEKO_WEBRTC_EPR: 52200-52300
+      NEKO_WEBRTC_NAT1TO1: 127.0.0.1
+      NEKO_DESKTOP_SCREEN: 1280x720@30
+      NEKO_MEMBER_MULTIUSER_USER_PASSWORD: "${BROWSER_USER_PASSWORD:?set BROWSER_USER_PASSWORD in .env}"
+      NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD: "${BROWSER_ADMIN_PASSWORD:?set BROWSER_ADMIN_PASSWORD in .env}"

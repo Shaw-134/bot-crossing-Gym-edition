@@ -16,6 +16,9 @@ const post = (url, payload) =>
 
 export const fetchThreads = () => req('/api/threads')
 
+/** The optional remote browser's addresses: `{ enabled, persistent, throwaway }`. */
+export const fetchBrowser = () => req('/api/browser')
+
 /** Items from the optional connectors. `{ polledAt, connectors, items }`; empty when none are on. */
 export const fetchConnectors = () => req('/api/connectors')
 

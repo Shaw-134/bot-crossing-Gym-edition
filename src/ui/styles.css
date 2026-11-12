@@ -1684,3 +1684,98 @@ kbd {
 .side .conn-item.attention .st {
   color: #8fb4ee;
 }
+
+/* ── the optional remote browser ────────────────────────────────────────────────── */
+
+.browser {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 74px;
+  right: calc(var(--side) + 14px);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.browser.closed {
+  opacity: 0;
+  transform: scale(0.985);
+  pointer-events: none;
+}
+
+.browser header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.browser header .name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.browser .modes {
+  display: flex;
+  gap: 4px;
+}
+
+.browser .modes .btn {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.browser .modes .btn[aria-pressed='true'] {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--line-strong);
+}
+
+.browser .frame {
+  flex: 1;
+  min-height: 0;
+  background: #000;
+}
+
+.browser iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.browser footer {
+  flex: none;
+  padding: 7px 14px;
+  font-size: 11.5px;
+  color: var(--dim);
+  border-top: 1px solid var(--line);
+}
+
+.side .conn-item .conn-copy {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  opacity: 0.55;
+}
+
+.side .conn-item .conn-copy:hover {
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .browser {
+    left: 8px;
+    right: 8px;
+    top: 8px;
+    bottom: 8px;
+    z-index: 20;
+  }
+}

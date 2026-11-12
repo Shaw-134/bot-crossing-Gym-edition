@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { browserConfig } from './browser.mjs'
 import { connectorHub } from './connectors/index.mjs'
 import { openInTerminal, schemeHasHandler, schemeOf } from './lib/xdg.mjs'
 import {
@@ -377,6 +378,11 @@ export async function apiMiddleware(req, res, next) {
     // in HOMEBASE_CONNECTORS; read-only, and nothing they return is written to disk.
     if (url.pathname === '/api/connectors' && req.method === 'GET') {
       return send(res, 200, await connectorHub().poll())
+    }
+
+    // Addresses of the optional self-hosted remote browser. Off unless set in .env.
+    if (url.pathname === '/api/browser' && req.method === 'GET') {
+      return send(res, 200, browserConfig())
     }
 
     if (url.pathname === '/api/harnesses' && req.method === 'GET') {

@@ -13,6 +13,7 @@ data/
 *.local.json
 config.local.*
 credentials*.json
+docker-compose.browser.yml
 client_secret*.json
 token*.json
 *.pem

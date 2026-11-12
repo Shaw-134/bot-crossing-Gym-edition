@@ -34,6 +34,8 @@ Compared with upstream at the point this fork branched (`fefaf7b`, 16 September 
   listed in `HOMEBASE_CONNECTORS`, a `GET /api/connectors` route, and a dashboard block in the
   sidebar that is hidden when no connector is on.
 - **Connectors**: `system`, `email`, `drive`, `jellyfin`, `http`. See [Status](#status).
+- **Optional remote browser panel** (`server/browser.mjs`, `GET /api/browser`): shows a
+  self-hosted containerised browser in a frame. See [Remote browser](#remote-browser).
 - **Optional `.env` file** (`server/lib/env.mjs`), `.env.example`, and a stricter `.gitignore`.
 - One new dependency, [`systeminformation`](https://www.npmjs.com/package/systeminformation),
   imported only when the `system` connector is on.
@@ -58,12 +60,14 @@ server, so expect rough edges.
 | `email`: Gmail unread count, important and starred | **Partial**: not yet run against a real Google account |
 | `drive`: recently shared or changed files | **Partial**: not yet run against a real Google account |
 | `jellyfin`: health, active streams, recent additions | **Partial**: not yet run against a real server |
+| Remote browser panel (kept-profile and throwaway modes) | **Partial**: the panel works with any framable address; the Neko containers in the example compose file have not yet been run with it |
 | Mail over IMAP | **Planned**, not started |
 | A local agent system (e.g. "Jarvis") | No dedicated code, by design: point an `http` check at it |
 
 ## Roadmap
 
-1. Verify `email`, `drive` and `jellyfin` against real accounts and servers.
+1. Verify `email`, `drive`, `jellyfin` and the remote browser against real accounts, servers
+   and containers.
 2. Mail over IMAP, for providers other than Gmail.
 3. More monitoring sources through the `http` connector or new connectors.
 4. Merge upstream's newer commits.
@@ -90,6 +94,30 @@ HOMEBASE_CONNECTORS=system,http
 A connector that is listed but not set up, or that fails, says so in the panel and does not
 affect the others or the colony. Writing a new one is a module in `server/connectors/` and one
 line in its `index.mjs`; the interface is documented at the top of that file.
+
+## Remote browser
+
+Optional, and off by default. If you run a containerised browser yourself, Homebase Colony can
+show it in a panel (the window button on the left rail, or `B`), so browsing happens inside
+the container and not in your everyday browser. This project does not bundle or run a browser:
+it frames the address you give it.
+
+[`docker-compose.browser.example.yml`](docker-compose.browser.example.yml) runs two
+[Neko](https://github.com/m1k1o/neko) containers (open source, Apache-2.0, Firefox inside):
+
+- **Kept profile** (`BROWSER_URL`): its profile is stored in `data/browser-profile/`, so sites
+  stay signed in. Use it for mail, Drive and your own services.
+- **Throwaway** (`BROWSER_THROWAWAY_URL`): no stored profile. Recreating the container wipes
+  it; the command is in the compose file. It is not wiped automatically when you close the panel.
+
+Both are published on `127.0.0.1` only, and the compose file refuses to start without
+passwords set in `.env`. You sign in to the container inside the panel.
+
+Limits worth knowing: dashboard items do not open in the remote browser by themselves. Each
+item gets a copy-link button to paste into it. Closing the panel disconnects the stream but
+the container keeps running. A container isolates the browser from your PC's files and
+everyday browser profile; it is not a guarantee against every attack, and the pages it loads
+still come from your network address.
 
 ## Security and privacy
 
