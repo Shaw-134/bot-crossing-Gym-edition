@@ -1,18 +1,18 @@
 {
-  "name": "bot-crossing",
+  "name": "homebase-colony",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A 3D colony sim where every coding-agent thread on your machine is a little astronaut building something.",
+  "description": "A fork of Bot Crossing by Jarren Rocks. A 3D colony sim where every coding-agent thread on your machine is a little astronaut building something.",
   "license": "MIT",
-  "author": "Jarren Rocks",
-  "homepage": "https://botcrossing.com",
+  "author": "Jarren Rocks (original Bot Crossing, https://jarren.rocks)",
+  "homepage": "https://github.com/Shaw-134/homebase-colony#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jarrenrocks/bot-crossing.git"
+    "url": "git+https://github.com/Shaw-134/homebase-colony.git"
   },
   "bugs": {
-    "url": "https://github.com/jarrenrocks/bot-crossing/issues"
+    "url": "https://github.com/Shaw-134/homebase-colony/issues"
   },
   "keywords": [
     "claude-code",

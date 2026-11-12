@@ -1,4 +1,4 @@
-# Gym Edition — a fork of Bot Crossing
+# Homebase Colony — a fork of Bot Crossing by Jarren Rocks
 
 An unofficial, personal fork of **[Bot Crossing](https://github.com/Station-Sciences/bot-crossing)**
 ([botcrossing.com](https://botcrossing.com)) by **[Jarren Rocks](https://jarren.rocks)**. Not

@@ -360,7 +360,7 @@ export async function apiMiddleware(req, res, next) {
   if (!url.pathname.startsWith('/api/')) return next ? next() : send(res, 404, { error: 'Not found' })
 
   if (!isLocalRequest(req)) {
-    return send(res, 403, { error: 'Bot Crossing only answers its own page on this machine' })
+    return send(res, 403, { error: 'Homebase Colony only answers its own page on this machine' })
   }
 
   try {
