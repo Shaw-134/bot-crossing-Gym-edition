@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
+    "systeminformation": "^5.33.19",
     "three": "^0.185.0"
   },
   "devDependencies": {
