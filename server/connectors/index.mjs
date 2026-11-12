@@ -26,6 +26,8 @@ export const REGISTRY = [
   { id: 'system', load: () => import('./system.mjs') },
   { id: 'email', load: () => import('./email.mjs') },
   { id: 'drive', load: () => import('./drive.mjs') },
+  { id: 'jellyfin', load: () => import('./jellyfin.mjs') },
+  { id: 'http', load: () => import('./http.mjs') },
 ]
 
 const DEFAULT_INTERVAL_MS = 15_000
