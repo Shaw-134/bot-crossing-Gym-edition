@@ -14,6 +14,53 @@ is the only file it writes anywhere.
 > issues and PRs are welcome but may go unanswered, and forking is an entirely reasonable
 > thing to do. [CONTRIBUTING.md](CONTRIBUTING.md) sets out what to expect.
 
+## Gym edition
+
+This repository is **Bot Crossing — Gym edition**, a personal fork of
+[Bot Crossing](https://github.com/Station-Sciences/bot-crossing) by
+**[Jarren Rocks](https://jarren.rocks)**. It is the original colony sim, unchanged in how it works:
+every coding-agent thread on your machine is an astronaut, read from the harness's own local
+files.
+
+At this point the fork is the upstream project plus one small UI change (below). No gym-specific
+feature has been built yet. The name marks the direction of the fork, not a finished product.
+
+Per [TRADEMARKS.md](TRADEMARKS.md), the name "Bot Crossing" is reserved by the original author,
+and this fork is not endorsed by or maintained by upstream. The fork is described as "a fork of
+Bot Crossing", which that file permits.
+
+### Changes from upstream
+
+Compared with upstream at the point this fork branched (`fefaf7b`), the fork has **one commit**
+(`c5df01c`), touching three files:
+
+- **Archive all threads for a repo.** A new "Archive all threads" button in the project card
+  (`src/ui/hud.js`) calls a new `archiveProject` action (`src/main.js`), which archives every
+  thread of the selected repo in one click and shows a toast with the count. Previously threads
+  were archived one by one.
+- `package.json`: an `allowScripts` entry for `esbuild@0.28.2`.
+
+Everything else is upstream's code. The fork is 74 commits behind upstream `main` and has not
+merged them. `npm test` (72 tests) and `vite build` pass on this branch.
+
+### Credit
+
+All of the original work — the colony, the worlds, the crew, the harness adapters, the sound —
+is by **Jarren Rocks** and is licensed under the [MIT Licence](LICENSE), © 2026 Jarren Rocks.
+That notice is kept, as the licence requires. The bundled art is CC0 by Kay Lousberg and
+Kenney, credited under [Licence](#licence) below. The Linux and Windows support commits from Kiran J
+and RouterBox are in the history.
+
+### Roadmap
+
+Plans only. **None of these exist in the code today.**
+
+- Gym-specific features: not designed or started.
+- Email integration: not started.
+- Google Drive integration: not started.
+- PC / system monitoring (CPU, memory and the like): not started.
+- Merge upstream's 74 newer commits.
+
 ## Run it
 
 ```bash
