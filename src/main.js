@@ -15,6 +15,7 @@ import { shorelinePoints } from './world/planet.js'
 import { shipPosition } from './world/plots.js'
 import {
   fetchThreads,
+  fetchConnectors,
   fetchState,
   saveState,
   openThread,
@@ -748,6 +749,22 @@ async function poll() {
     hud.removeBoot()
   } finally {
     polling = false
+  }
+  pollConnectors()
+}
+
+// Connectors are optional and separate from the roster: a slow or broken one must never
+// hold up, or put an error toast over, the threads themselves.
+let pollingConnectors = false
+async function pollConnectors() {
+  if (pollingConnectors) return
+  pollingConnectors = true
+  try {
+    hud.setConnectors(await fetchConnectors())
+  } catch {
+    /* the panel keeps what it last showed */
+  } finally {
+    pollingConnectors = false
   }
 }
 
