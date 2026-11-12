@@ -9,70 +9,106 @@ endorsed by or affiliated with the original project.
 
 ## What this is
 
-**Today** it is Bot Crossing with one small addition: a 3D colony where every coding-agent
-thread on this machine is a little astronaut. They walk out of the ship, claim a plot for their
-repo, and build something. When one needs you it stops and holds a `?` over its head; click it
-and the thread opens back in whichever harness it came from. It reads the harness's own files,
-on your own machine. Nothing is uploaded, there is no account, and it never writes to a harness.
-`data/colony.json`, where the map lives, is the only file it writes.
+A 3D colony where every coding-agent thread on this machine is a little astronaut. They walk
+out of the ship, claim a plot for their repo, and build something. When one needs you it stops
+and holds a `?` over its head; click it and the thread opens back in whichever harness it came
+from. That part is Bot Crossing, unchanged.
 
-**The goal** of this fork is one local-first, all-in-one dashboard for a PC and home setup: the
-agent sessions that exist today, plus email, Google Drive and PC/system monitoring, so that
-whatever needs attention shows up in one place. Later, optional integrations with other
-self-hosted services. No hosted backend; data is read on your own machine.
+This fork adds a **dashboard panel** beside the repos, fed by optional **connectors**: this
+machine's load, mail, Google Drive, a Jellyfin server, and any local service that answers over
+HTTP. Anything that needs attention carries the same `?`. The aim is one local-first place to
+see what needs you across a PC and home setup.
 
-That goal is **not built yet**. See [Status](#status).
+There is no hosted backend, no account with this project, and no telemetry. With no
+connectors enabled (the default) it makes no network requests beyond its own page.
 
 ## Changes from upstream
 
 Compared with upstream at the point this fork branched (`fefaf7b`, 16 September 2026):
 
-- **Archive all threads for a repo.** An "Archive all threads" button in the project card
-  (`src/ui/hud.js`) and an `archiveProject` action (`src/main.js`) archive every thread of the
-  selected repo in one click and show a toast with the count.
-- **Optional `.env` file.** `server/lib/env.mjs` loads a gitignored `.env` from the repository
-  root before the server reads its settings. `.env.example` documents the variables.
-- **Stricter `.gitignore`** for `.env` files, credential and token files, keys, and all of `data/`.
-- `package.json`: an `allowScripts` entry for `esbuild@0.28.2`.
-- This README section.
+- **Renamed** to Homebase Colony in `package.json`, the page title and the UI, because
+  [TRADEMARKS.md](TRADEMARKS.md) reserves the original name.
+- **Archive all threads for a repo**: a button in the project card (`src/ui/hud.js`,
+  `src/main.js`).
+- **Connector architecture** (`server/connectors/`): a registry that loads only the connectors
+  listed in `HOMEBASE_CONNECTORS`, a `GET /api/connectors` route, and a dashboard block in the
+  sidebar that is hidden when no connector is on.
+- **Connectors**: `system`, `email`, `drive`, `jellyfin`, `http`. See [Status](#status).
+- **Optional `.env` file** (`server/lib/env.mjs`), `.env.example`, and a stricter `.gitignore`.
+- One new dependency, [`systeminformation`](https://www.npmjs.com/package/systeminformation),
+  imported only when the `system` connector is on.
+- Tests for all of the above in `test/connector*.test.mjs`.
 
 Everything else is upstream's code. This fork has not merged the 74 commits upstream `main` has
 made since the branch point.
 
 ## Status
 
+"Working" means it has been run against the real thing. "Partial" means the code and its
+tests against canned responses exist, but it has not yet been run against a real account or
+server, so expect rough edges.
+
 | Area | Status |
 | --- | --- |
 | Agent sessions: Claude Code, Codex, Cursor | **Working** (upstream's harness adapters, unchanged) |
-| Archive all threads for a repo | **Working** (this fork) |
-| Email | **Planned**, not started |
-| Google Drive | **Planned**, not started |
-| PC / system monitoring | **Planned**, not started |
-| Jellyfin | **Planned**, not started |
-| Jarvis (a local AI agent system) | **Planned**, not started |
-
-No integration is partially built. There is no code for any "Planned" row.
+| Archive all threads for a repo | **Working** |
+| Dashboard panel and connector registry | **Working** |
+| `system`: CPU, memory, disks, GPU, top processes | **Working** on Linux. GPU rows appear only where the driver reports load; not yet tried on Windows or macOS |
+| `http`: generic status checks for local services | **Working** |
+| `email`: Gmail unread count, important and starred | **Partial**: not yet run against a real Google account |
+| `drive`: recently shared or changed files | **Partial**: not yet run against a real Google account |
+| `jellyfin`: health, active streams, recent additions | **Partial**: not yet run against a real server |
+| Mail over IMAP | **Planned**, not started |
+| A local agent system (e.g. "Jarvis") | No dedicated code, by design: point an `http` check at it |
 
 ## Roadmap
 
-In rough order. All of it is planned; none of it exists.
-
-1. Merge upstream's newer commits.
-2. PC / system monitoring.
-3. Email and Google Drive: surface what needs attention.
-4. Optional, configurable integrations: Jellyfin, Jarvis, extra monitoring sources. Each off by
-   default and set up through local configuration only.
+1. Verify `email`, `drive` and `jellyfin` against real accounts and servers.
+2. Mail over IMAP, for providers other than Gmail.
+3. More monitoring sources through the `http` connector or new connectors.
+4. Merge upstream's newer commits.
 
 ## Configuration
 
-Everything is optional and the defaults work. To change a setting, copy
-[`.env.example`](.env.example) to `.env` and edit it, or set the variable in your shell (the
-shell wins). `.env` is gitignored; `.env.example` holds placeholders only.
+Everything is optional and the defaults work. Copy [`.env.example`](.env.example) to `.env` and
+edit it, or set variables in your shell (the shell wins). `.env` is gitignored; `.env.example`
+holds placeholders only.
 
-Read by the code today: `PORT`, `BOT_CROSSING_HOST`, `BOT_CROSSING_DATA`, `CODEX_HOME`,
-`BOT_CROSSING_CURSOR_PROJECTS`. The integration variables listed in `.env.example` are marked
-planned and nothing reads them yet. When integrations are built, their credentials go in `.env`
-or another gitignored file, never in the repository.
+Connectors are off until listed:
+
+```bash
+HOMEBASE_CONNECTORS=system,http
+```
+
+| Connector | Needs |
+| --- | --- |
+| `system` | Nothing. Optional `SYSTEM_*_WARN` thresholds. |
+| `http` | A checks file at `data/http-checks.json`; start from [`http-checks.example.json`](http-checks.example.json). |
+| `email`, `drive` | Your own Google OAuth client (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`), then `npm run google-auth` once. |
+| `jellyfin` | `JELLYFIN_URL` and `JELLYFIN_API_KEY`. |
+
+A connector that is listed but not set up, or that fails, says so in the panel and does not
+affect the others or the colony. Writing a new one is a module in `server/connectors/` and one
+line in its `index.mjs`; the interface is documented at the top of that file.
+
+## Security and privacy
+
+- **Local only.** The server binds to `127.0.0.1` by default and answers only its own page
+  (see [Keeping it local](#keeping-it-local)). There is no hosted backend and no telemetry.
+- **Read-only.** Connectors only read: every data request is a GET, and the one POST is the
+  token exchange with Google's sign-in endpoint. Google access uses the narrowest scopes
+  that work: `gmail.metadata` (labels and headers; it cannot read a message body) and
+  `drive.metadata.readonly` (names and dates; it cannot read a file's contents).
+- **Where requests go.** With connectors off, nowhere. `email` and `drive` talk to Google's
+  APIs directly from your machine; `jellyfin` and `http` talk to the addresses you configure.
+- **What is stored.** Connector data is held in memory for the panel and never written to
+  disk. The only connector file written is the Google refresh token, in `data/`, readable by
+  your user only.
+- **Secrets stay out of git.** Keys, tokens, addresses and the checks file live in `.env` or
+  `data/`, both gitignored. Error messages shown in the panel name a host, never a full URL,
+  query string or header.
+- The page links connector items to the addresses you configured, so serving the colony to
+  your network (`BOT_CROSSING_HOST`) shows those item titles to anyone who can open it.
 
 ## Credit and licence
 
