@@ -37,6 +37,7 @@
     "start": "vite build && node server/serve.mjs",
     "serve": "node server/serve.mjs",
     "assets": "node tools/build-assets.mjs",
+    "google-auth": "node tools/google-auth.mjs",
     "test": "node --test \"test/**/*.test.mjs\""
   },
   "dependencies": {

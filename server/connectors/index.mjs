@@ -24,6 +24,8 @@ import { enabledIds, normalizeItem } from './lib.mjs'
 /** id → loader. Adding a connector is one module in this folder and one line here. */
 export const REGISTRY = [
   { id: 'system', load: () => import('./system.mjs') },
+  { id: 'email', load: () => import('./email.mjs') },
+  { id: 'drive', load: () => import('./drive.mjs') },
 ]
 
 const DEFAULT_INTERVAL_MS = 15_000

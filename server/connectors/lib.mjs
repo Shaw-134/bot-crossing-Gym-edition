@@ -2,6 +2,8 @@
  * Shared pieces for connectors: the item shape every connector returns, and a fetch helper
  * whose errors never carry a URL, a query string or a header (any of which may hold a token).
  */
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 /** Ids listed in `HOMEBASE_CONNECTORS`, e.g. `system,http`. Empty or unset means none. */
 export function enabledIds(env = process.env) {
@@ -76,4 +78,10 @@ export async function fetchJson(fetchImpl, url, { headers = {}, timeoutMs = 8000
   } catch {
     throw new Error(`${host} did not answer with JSON`)
   }
+}
+
+
+/** The gitignored folder local state lives in: the same one `colony.json` uses. */
+export function dataDir(env = process.env) {
+  return env.BOT_CROSSING_DATA || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'data')
 }
